@@ -10,5 +10,12 @@ namespace Infrastructure.Data
         {
 
         }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            // Add custom configurations here if needed
+            // For example, you can configure the default schema or add entity configurations
+        }
     }
 }

@@ -1,17 +1,21 @@
-using FluentValidation.AspNetCore;
 using Scalar.AspNetCore;
 using Serilog;
 using System.Text;
 using Asp.Versioning;
-using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
-using static System.Net.Mime.MediaTypeNames;
-
+using Infrastructure.Data;
+using Application.Interfaces;
+using Application.Services;
+using Core.Interfaces;
+using Infrastructure.Repositories;
+using Core.Models;
+using FluentValidation.AspNetCore;
+using FluentValidation;
+using Application.Validators;
 
 namespace API
 {
@@ -36,7 +40,11 @@ namespace API
             builder.Services.AddOpenApi("v1", options => { options.AddDocumentTransformer<BearerSecuritySchemeTransformer>(); });
 
             // Configure FluentValidation
-            builder.Services.AddFluentValidationAutoValidation().AddFluentValidationClientsideAdapters();// (config => config.RegisterValidatorsFromAssemblyContaining<Program>());
+            //builder.Services.AddValidatorsFromAssemblyContaining(typeof(RegisterMerchantValidator));
+
+
+            builder.Services.AddFluentValidationAutoValidation().AddFluentValidationClientsideAdapters()
+                .AddValidatorsFromAssemblyContaining(typeof(RegisterMerchantValidator));
 
             // Configure Serilog
             builder.Host.UseSerilog((context, config) => config.WriteTo.Console());
@@ -44,7 +52,7 @@ namespace API
             builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
 
             // Configure DbContext and Identity
-            //builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             builder.Services.AddApiVersioning(options =>
             {
@@ -73,26 +81,24 @@ namespace API
                 };
             });
 
-            //builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
-            //{
-            //    options.User.RequireUniqueEmail = true;
-            //    options.Password.RequireUppercase = false;
-            //    options.Password.RequireLowercase = false;
-            //    options.Password.RequireDigit = false;
-            //    options.Password.RequireNonAlphanumeric = false;
-            //}).AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
+            // Repositories
+            builder.Services.AddScoped<IMerchantRepository, MerchantRepository>();
+            builder.Services.AddScoped<IEndUserRepository, EndUserRepository>();
 
-            //builder.Services.Configure<IdentityOptions>(options =>
-            //{
-            //    options.User.RequireUniqueEmail = true;
-            //    options.SignIn.RequireConfirmedAccount = false;
-            //    options.Password.RequiredLength = 6;
-            //    options.Password.RequireDigit = false;
-            //    options.Password.RequireLowercase = false;
-            //    options.Password.RequireUppercase = false;
-            //    options.Password.RequireNonAlphanumeric = false;
-            //});
+            // Services
+            builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<IEmailService, EmailService>();
 
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            {
+                options.User.RequireUniqueEmail = true;
+                options.Password.RequireUppercase = false;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireDigit = false;
+                options.Password.RequireNonAlphanumeric = false;
+            }).AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
+
+            // JWT Authentication
             builder.Services.AddAuthorization().AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -113,17 +119,12 @@ namespace API
                 };
             });
 
-            // Add Dependency Injection for Repositories and Services
-            //builder.Services.AddScoped<IMerchantService, MerchantService>();
-            //builder.Services.AddScoped<IUserService, UserService>();
-            //builder.Services.AddSingleton<IEmailSender, EmailSender>();
-
             var app = builder.Build();
 
             app.UseStatusCodePages(async statusCodeContext =>
             {
                 // using static System.Net.Mime.MediaTypeNames;
-                statusCodeContext.HttpContext.Response.ContentType = Text.Plain;
+                statusCodeContext.HttpContext.Response.ContentType = System.Net.Mime.MediaTypeNames.Text.Plain;
 
                 await statusCodeContext.HttpContext.Response.WriteAsync($"Status Code Page: {statusCodeContext.HttpContext.Response.StatusCode}");
             });
@@ -132,12 +133,9 @@ namespace API
 
             app.UseExceptionHandler(new ExceptionHandlerOptions
             {
-                StatusCodeSelector = ex => ex switch
-                {
-                    ArgumentException => StatusCodes.Status400BadRequest,
-                    NotFoundException => StatusCodes.Status404NotFound,
-                    _ => StatusCodes.Status500InternalServerError
-                }
+                StatusCodeSelector = ex => ex is TimeoutException
+                    ? StatusCodes.Status503ServiceUnavailable
+                    : StatusCodes.Status500InternalServerError
             });
 
             // Configure the HTTP request pipeline.

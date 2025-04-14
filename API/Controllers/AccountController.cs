@@ -1,5 +1,6 @@
 ﻿using Application.DTOs;
 using Application.Interfaces;
+using Application.Services;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,39 +11,95 @@ namespace API.Controllers
     [ApiController]
     public class AccountController : ControllerBase
     {
-        private readonly IUserService _userService;
+        private readonly IAuthService _authService;
 
-        public AccountController(IUserService authService)
+        public AccountController(IAuthService authService)
         {
-            _userService = authService;
+            _authService = authService;
         }
 
-        [HttpPost]
+        [HttpPost("RegisterMerchant")]
         public async Task<IActionResult> RegisterMerchant([FromBody] RegisterMerchantDto registerMerchantDto)
         {
-            var response = await _userService.RegisterMerchantAsync(registerMerchantDto);
-            return Ok(response);// "A merchant account has been successfully. Please confirm your email");
+            try
+            {
+                var result = await _authService.RegisterMerchantAsync(registerMerchantDto);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
-        [HttpPost]
+        [HttpPost("RegisterEndUser")]
         public async Task<IActionResult> RegisterEndUser([FromBody] RegisterEndUserDto registerEndUserDto)
         {
-            // Register the user
-            var result = await _userService.RegisterEndUserAsync(registerEndUserDto);
-            return Ok(result);// "Your account has been created successfully. Please confirm your email");
+            try
+            {
+                var result = await _authService.RegisterEndUserAsync(registerEndUserDto);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
-        [HttpPost("login")]
+        [HttpPost("Login")]
         public async Task<ActionResult<AuthResponseDTO>> Login([FromBody] LoginDTO dto)
         {
-            var response = await _userService.LoginAsync(dto);
-            return Ok(response);
+            try
+            {
+                var token = await _authService.LoginAsync(dto);
+                return Ok(new { Token = token });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
+        [HttpPost("ConfirmEmail")]
         public async Task<IActionResult> ConfirmEmail(string userId, string token)
         {
-            var result = await _userService.ConfirmEmailAsync(userId, token);
-            return result ? Ok("Email confirmed!") : BadRequest("Invalid confirmation.");
+            try
+            {
+                await _authService.ConfirmEmailAsync(userId, token);
+                return Ok("Email confirmed successfully.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("ResendEmailConfirmation")]
+        public async Task<IActionResult> ResendEmailConfirmation([FromBody] ForgotPasswordDto dto)
+        {
+            try
+            {
+                await _authService.ResendEmailConfirmationAsync(dto.Email);
+                return Ok("Confirmation email resent successfully.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("ForgotPassword")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+        {
+            try
+            {
+                await _authService.ForgotPasswordAsync(dto);
+                return Ok("Password reset email sent successfully.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }
