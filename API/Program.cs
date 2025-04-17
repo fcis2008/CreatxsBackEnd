@@ -53,6 +53,7 @@ namespace API
 
             // Configure DbContext and Identity
             builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            builder.Services.AddDbContext<ExtendedDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             builder.Services.AddApiVersioning(options =>
             {
@@ -81,13 +82,20 @@ namespace API
                 };
             });
 
-            // Repositories
-            builder.Services.AddScoped<IMerchantRepository, MerchantRepository>();
-            builder.Services.AddScoped<IEndUserRepository, EndUserRepository>();
+            builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
             // Services
+            builder.Services.AddScoped(typeof(IBaseService<,,>), typeof(BaseService<,,>));
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
+            builder.Services.AddScoped<ICurrencyService, CurrencyService>();
+            builder.Services.AddScoped<ICityService, CityService>();
+
+            // Repositories
+            builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
+            builder.Services.AddScoped<IMerchantRepository, MerchantRepository>();
+            builder.Services.AddScoped<IEndUserRepository, EndUserRepository>();
+            builder.Services.AddScoped<ICurrencyRepository, CurrencyRepository>();
 
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
@@ -96,7 +104,7 @@ namespace API
                 options.Password.RequireLowercase = false;
                 options.Password.RequireDigit = false;
                 options.Password.RequireNonAlphanumeric = false;
-            }).AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
+            }).AddEntityFrameworkStores<ExtendedDbContext>().AddDefaultTokenProviders();
 
             // JWT Authentication
             builder.Services.AddAuthorization().AddAuthentication(options =>

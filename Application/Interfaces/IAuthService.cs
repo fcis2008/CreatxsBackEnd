@@ -8,6 +8,7 @@ namespace Application.Interfaces
         Task<string> RegisterEndUserAsync(RegisterEndUserDto registerEndUserDto);
         Task<string> ConfirmEmailAsync(string userId, string token);
         Task<string> LoginAsync(LoginDTO loginDTO);
+        Task ResetPasswordAsync(ResetPasswordDto resetPasswordDto);
         Task ResendEmailConfirmationAsync(string email);
         Task ForgotPasswordAsync(ForgotPasswordDto forgotPasswordDto);
     }

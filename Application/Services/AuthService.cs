@@ -58,8 +58,6 @@ namespace Application.Services
             if (!result.Succeeded)
                 throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
 
-            await _userManager.AddToRoleAsync(endUser, "EndUser");
-
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(endUser);
             var confirmationLink = GenerateConfirmationLink(endUser.Id, token);
             //await _emailService.SendEmailAsync(dto.Email, "Confirm Your Email", $"Please confirm your email by clicking <a href=\"{confirmationLink}\">here</a>.");
@@ -87,7 +85,10 @@ namespace Application.Services
             if (!result.Succeeded)
                 throw new Exception("Email confirmation failed.");
 
-            await _userManager.AddToRoleAsync(user, "Merchant");
+            if(user.UserType == UserType.Merchant)
+                await _userManager.AddToRoleAsync(user, "Merchant");
+            else 
+                await _userManager.AddToRoleAsync(user, "EndUser");
 
             return "Email confirmed successfully.";
         }
@@ -101,7 +102,7 @@ namespace Application.Services
 
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var confirmationLink = GenerateConfirmationLink(user.Id, token);
-            await _emailService.SendEmailAsync(email, "Confirm Your Email", $"Please confirm your email by clicking <a href=\"{confirmationLink}\">here</a>.");
+            //await _emailService.SendEmailAsync(email, "Confirm Your Email", $"Please confirm your email by clicking <a href=\"{confirmationLink}\">here</a>.");
         }
 
         private string GenerateJwtToken(IdentityUser user)
@@ -128,7 +129,7 @@ namespace Application.Services
 
         private string GenerateConfirmationLink(string userId, string token)
         {
-            return $"https://yourapp.com/api/auth/ConfirmEmail?userId={userId}&token={token}";
+            return _configuration["AppSettings:AppUrl"] + $"/api/auth/ConfirmEmail?userId={userId}&token={token}";
         }
 
         public async Task ForgotPasswordAsync(ForgotPasswordDto dto)
@@ -144,7 +145,14 @@ namespace Application.Services
 
         private string GeneratePasswordResetLink(string userId, string token)
         {
-            return $"https://yourapp.com/api/auth/reset-password?userId={userId}&token={token}";
+            return _configuration["AppSettings:AppUrl"] + $"/api/auth/ResetPassword?userId={userId}&token={token}";
+        }
+        public async Task ResetPasswordAsync(ResetPasswordDto dto)
+        {
+            var user = await _userManager.FindByIdAsync(dto.UserId) ?? throw new Exception("Invalid user.");
+            var result = await _userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
+            if (!result.Succeeded)
+                throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
         }
     }
 }

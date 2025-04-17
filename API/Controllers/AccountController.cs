@@ -1,6 +1,5 @@
 ﻿using Application.DTOs;
 using Application.Interfaces;
-using Application.Services;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
 
@@ -95,6 +94,20 @@ namespace API.Controllers
             {
                 await _authService.ForgotPasswordAsync(dto);
                 return Ok("Password reset email sent successfully.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("ResetPassword")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+        {
+            try
+            {
+                await _authService.ResetPasswordAsync(dto);
+                return Ok("Password reset successfully.");
             }
             catch (Exception ex)
             {
