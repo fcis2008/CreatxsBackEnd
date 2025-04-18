@@ -50,8 +50,7 @@ namespace Infrastructure.Repositories
             if (id <= 0)
                 throw new ArgumentException("Id must be > 0.", nameof(id));
 
-            var entity = await _dbSet.FindAsync(id);
-            return entity ?? throw new KeyNotFoundException($"Entity with id {id} was not found.");
+            return await _dbSet.FindAsync(id);
         }
 
         /// <summary>

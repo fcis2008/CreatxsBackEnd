@@ -34,6 +34,10 @@ namespace Application.Services
         public async Task<int> CreateAsync(TCreateDto createDto)
         {
             var entity = _mapper.Map<TEntity>(createDto);
+
+            var entityCreatedAtProperty = typeof(TEntity).GetProperty("CreatedAt");
+            entityCreatedAtProperty?.SetValue(entity, DateTime.Now);
+
             return await _repository.CreateAsync(entity);
         }
 
@@ -70,6 +74,10 @@ namespace Application.Services
             var entity = _mapper.Map<TEntity>(updateDto);
             var entityIdProperty = typeof(TEntity).GetProperty("Id");
             entityIdProperty?.SetValue(entity, id);
+
+            var entityUpdatedAtProperty = typeof(TEntity).GetProperty("UpdatedAt");
+            entityUpdatedAtProperty?.SetValue(entity, DateTime.Now);
+
             await _repository.UpdateAsync(entity);
         }
 

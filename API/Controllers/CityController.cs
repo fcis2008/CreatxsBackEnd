@@ -1,5 +1,6 @@
 using Application.DTOs;
 using Application.Interfaces;
+using Application.Services;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
 
@@ -37,7 +38,7 @@ namespace API.Controllers
             try
             {
                 var id = await _cityService.CreateAsync(dto);
-                return CreatedAtAction(nameof(GetCityById), new { id = id }, id);
+                return CreatedAtAction(nameof(GetCityById), new { id }, id);
             }
             catch (Exception ex)
             {
@@ -129,6 +130,10 @@ namespace API.Controllers
         {
             try
             {
+                var result = await _cityService.GetByIdAsync(id);
+                if (result == null)
+                    return NotFound("Entity wasn't found");
+
                 await _cityService.DeleteAsync(id);
                 return NoContent();
             }

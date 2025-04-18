@@ -13,6 +13,12 @@ namespace Application
 
             CreateMap<City, CityDto>();
             CreateMap<CityCreateDto, City>();
+
+            CreateMap<District, DistrictDto>();
+            CreateMap<DistrictCreateDto, District>();
+
+            CreateMap<Branch, BranchDto>();
+            CreateMap<BranchCreateDto, Branch>();
         }
     }
 }

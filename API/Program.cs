@@ -40,11 +40,7 @@ namespace API
             builder.Services.AddOpenApi("v1", options => { options.AddDocumentTransformer<BearerSecuritySchemeTransformer>(); });
 
             // Configure FluentValidation
-            //builder.Services.AddValidatorsFromAssemblyContaining(typeof(RegisterMerchantValidator));
-
-
-            builder.Services.AddFluentValidationAutoValidation().AddFluentValidationClientsideAdapters()
-                .AddValidatorsFromAssemblyContaining(typeof(RegisterMerchantValidator));
+            builder.Services.AddFluentValidationAutoValidation().AddFluentValidationClientsideAdapters().AddValidatorsFromAssemblyContaining(typeof(RegisterMerchantValidator));
 
             // Configure Serilog
             builder.Host.UseSerilog((context, config) => config.WriteTo.Console());
@@ -90,12 +86,14 @@ namespace API
             builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddScoped<ICurrencyService, CurrencyService>();
             builder.Services.AddScoped<ICityService, CityService>();
+            builder.Services.AddScoped<IBranchService, BranchService>();
 
             // Repositories
             builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
             builder.Services.AddScoped<IMerchantRepository, MerchantRepository>();
             builder.Services.AddScoped<IEndUserRepository, EndUserRepository>();
             builder.Services.AddScoped<ICurrencyRepository, CurrencyRepository>();
+            builder.Services.AddScoped<IBranchRepository, BranchRepository>();
 
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {

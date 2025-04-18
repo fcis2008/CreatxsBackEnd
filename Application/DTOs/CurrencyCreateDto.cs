@@ -7,4 +7,9 @@ namespace Application.DTOs
         public float ExchangeRate { get; set; }
         public bool IsPrimary { get; set; }
     }
+
+    public class CurrencyDto : CurrencyCreateDto
+    {
+        public int Id { get; set; }
+    }
 }

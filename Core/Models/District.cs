@@ -11,5 +11,7 @@ public partial class District
 
     public int CityId { get; set; }
 
+    public string? Notes { get; set; }
+
     public virtual City City { get; set; } = null!;
 }

@@ -4,11 +4,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Data
 {
-    public class ExtendedDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<ApplicationUser>(options)
+    public class ExtendedDbContext : IdentityDbContext<ApplicationUser>
     {
-        public ExtendedDbContext(DbContextOptions options) : base(options)
+        public ExtendedDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
         }
-
     }
 }

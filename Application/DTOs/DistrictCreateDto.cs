@@ -1,11 +1,12 @@
 namespace Application.DTOs
 {
-    public class CityCreateDto
+    public class DistrictCreateDto
     {
         public string Name { get; set; }
+        public string Notes { get; set; }
     }
 
-    public class CityDto : CityCreateDto
+    public class DistrictDto : DistrictCreateDto
     {
         public int Id { get; set; }
     }

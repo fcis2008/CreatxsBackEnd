@@ -30,7 +30,8 @@ namespace Application.Services
                 UserName = dto.Email,
                 Email = dto.Email,
                 UserType = UserType.Merchant,
-                StoreName = dto.StoreName
+                StoreName = dto.StoreName,
+                CreatedAt = DateTime.Now
             };
 
             var result = await _userManager.CreateAsync(merchant, dto.Password);
@@ -51,6 +52,7 @@ namespace Application.Services
             {
                 UserName = dto.Email,
                 Email = dto.Email,
+                CreatedAt = DateTime.Now,
                 UserType = UserType.EndUser
             };
 
@@ -129,7 +131,7 @@ namespace Application.Services
 
         private string GenerateConfirmationLink(string userId, string token)
         {
-            return _configuration["AppSettings:AppUrl"] + $"/api/auth/ConfirmEmail?userId={userId}&token={token}";
+            return _configuration["AppSettings:AppUrl"] + $"/api/v1/auth/ConfirmEmail?userId={userId}&token={token}";
         }
 
         public async Task ForgotPasswordAsync(ForgotPasswordDto dto)
@@ -145,7 +147,7 @@ namespace Application.Services
 
         private string GeneratePasswordResetLink(string userId, string token)
         {
-            return _configuration["AppSettings:AppUrl"] + $"/api/auth/ResetPassword?userId={userId}&token={token}";
+            return _configuration["AppSettings:AppUrl"] + $"/api/v1/auth/ResetPassword?userId={userId}&token={token}";
         }
         public async Task ResetPasswordAsync(ResetPasswordDto dto)
         {
